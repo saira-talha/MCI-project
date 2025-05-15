@@ -52,8 +52,8 @@ void loop() {
     Serial.println("------------------------");
 
     // Stop if any sensor detects an object within 30 cm
-    if ((cmFront <= 20 && cmFront > 0) || 
-        (cmLeft <= 20 && cmLeft > 0) || 
+    if ((cmFront <= 35 && cmFront > 0) || 
+        (cmLeft <= 24 && cmLeft > 0) || 
         (cmRight <= 20 && cmRight > 0)) {
         stopMotors();
     } else {
