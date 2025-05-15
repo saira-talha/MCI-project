@@ -1,0 +1,154 @@
+//////// sensor testing
+//// Motor A (Left Motor) - TivaC and L298N connections
+int enA = 40;   // Enable pin (PF2) for Left Motor (PWM control)
+int in1 = 12;   // IN1 pin (PA3) for Left Motor direction
+int in2 = 10;   // IN2 pin (PA7) for Left Motor direction
+
+// Motor B (Right Motor) - TivaC and L298N connections
+int enB = 37;   // Enable pin (PC4) for Right Motor (PWM control)
+int in3 = 13;   // IN3 pin (PA4) for Right Motor direction
+int in4 = 27;   // IN4 pin (PE1) for Right Motor direction
+
+// Ultrasonic Sensor Pins 
+const int frontTrig = 2, frontEcho = 24;   // PB5, PD1 Front sensor
+const int leftTrig = 30, leftEcho = 4;    // PF1, PB1 Left sensor
+const int rightTrig = 26, rightEcho = 19; // PD3, PB2 Right sensmjqor
+
+long cmFront, cmLeft, cmRight;
+
+void setup() {
+    Serial.begin(9600); // Serial for debugging
+
+    // Set motor control pins as OUTPUT
+    pinMode(enA, OUTPUT);
+    pinMode(in1, OUTPUT);
+    pinMode(in2, OUTPUT);
+    pinMode(enB, OUTPUT);
+    pinMode(in3, OUTPUT);
+    pinMode(in4, OUTPUT);
+
+    // Set Ultrasonic sensor pins
+    pinMode(frontTrig, OUTPUT); pinMode(frontEcho, INPUT);
+    pinMode(leftTrig, OUTPUT); pinMode(leftEcho, INPUT);
+    pinMode(rightTrig, OUTPUT); pinMode(rightEcho, INPUT);
+}
+
+void loop() {
+    // Update all ultrasonic sensor readings
+    cmFront = getUltrasonicDistance(frontTrig, frontEcho);
+    cmLeft = getUltrasonicDistance(leftTrig, leftEcho);
+    cmRight = getUltrasonicDistance(rightTrig, rightEcho);
+
+    // Print sensor readings
+    Serial.print("Front: "); Serial.print(cmFront); Serial.print(" cm, ");
+    Serial.print("Left: "); Serial.print(cmLeft); Serial.print(" cm, ");
+    Serial.print("Right: "); Serial.print(cmRight); Serial.println(" cm");
+
+  //   Decision-making based on sensor readings
+    if (cmFront <= 9 && cmFront > 0) {
+        //stopMotors();
+        if (cmLeft > cmRight) {
+            turnLeft();
+        } else {
+            turnRight();
+        }
+    } else if (cmLeft <= 4 && cmLeft > 0) {
+        turnRightAdjust();
+    } else if (cmRight <= 4 && cmRight > 0) {
+        turnLeftAdjust();
+    } else {
+        moveForward();
+    }
+        
+}
+
+// Function to get distance from an ultrasonic sensor
+long getUltrasonicDistance(int trigPin, int echoPin) {
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+    return (pulseIn(echoPin, HIGH) * 0.034) / 2;
+}
+
+// Function to move both motors forward
+void moveForward() {
+    Serial.println("Moving Forward");
+    digitalWrite(in1, HIGH); digitalWrite(in2, LOW);
+    analogWrite(enA, 191);
+    digitalWrite(in3, HIGH); digitalWrite(in4, LOW);
+    analogWrite(enB, 200);
+}
+
+// Function to stop motors
+void stopMotors() {
+    Serial.println("Stopping Motors");
+    digitalWrite(in1, LOW); digitalWrite(in2, LOW);
+    analogWrite(enA, 0);
+    digitalWrite(in3, LOW); digitalWrite(in4, LOW);
+    analogWrite(enB, 0);
+}
+
+//// Function to turn right
+void turnRight() {
+   // Function to make a 90-degree rightturn 
+    Serial.println("Turning right 90 Degrees");
+
+    // Left motor stops
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, LOW);
+    analogWrite(enA, 0);
+
+    // Right motor moves forward
+    digitalWrite(in3, HIGH);
+    digitalWrite(in4, LOW);
+    analogWrite(enB, 200);
+    delay(550);
+}
+
+void turnRightAdjust() {
+   // Function to make a 90-degree rightturn 
+    Serial.println("Turning right 90 Degrees");
+
+    // Left motor stops
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, LOW);
+    analogWrite(enA, 0);
+
+    // Right motor moves forward
+    digitalWrite(in3, HIGH);
+    digitalWrite(in4, LOW);
+    analogWrite(enB, 200);
+    delay(100);
+}
+// Function to turn left
+void turnLeft() {
+    Serial.println("Turning left 90 Degrees");
+
+    // Left motor moves forward
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
+    analogWrite(enA, 191);
+
+    // Right motor stops
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, LOW);
+    analogWrite(enB, 0);
+    delay(550);
+}
+
+void turnLeftAdjust() {
+    Serial.println("Turning left 90 Degrees");
+
+    // Left motor moves forward
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
+    analogWrite(enA, 191);
+
+    // Right motor stops
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, LOW);
+    analogWrite(enB, 0);
+    delay(100);
+}

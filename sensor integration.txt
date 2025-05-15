@@ -1,0 +1,112 @@
+//motor A (Left Motor) - TivaC and L298N connections
+int enA = 40;   // Enable pin (PF2) for Left Motor (PWM control)
+int in1 = 12;   // IN1 pin (PA3) for Left Motor direction
+int in2 = 10;   // IN2 pin (PA7) for Left Motor direction
+
+//motor B (Right Motor) - TivaC and L298N connections
+int enB = 37;   // Enable pin (PC4) for Right Motor (PWM control)
+int in3 = 13;   // IN3 pin (PA4) for Right Motor direction
+int in4 = 27;    // IN4 pin (PE1) for Right Motor direction
+
+// Ultrasonic Sensor Pins 
+const int frontTrig = 2 , frontEcho = 24; // PB5, PD1 Front sensor
+const int leftTrig = 30, leftEcho = 4;// PF1  , PB1  // Left sensor
+const int rightTrig = 26, rightEcho = 19;// PD3, PB2   // Right sensor
+
+long durationFront, cmFront;
+long durationLeft, cmLeft;
+long durationRight, cmRight;
+
+void setup() {
+    Serial.begin(9600); // Serial for debugging
+
+    // Set motor control pins as OUTPUT
+    pinMode(enA, OUTPUT);
+    pinMode(in1, OUTPUT);
+    pinMode(in2, OUTPUT);
+    
+    pinMode(enB, OUTPUT);
+    pinMode(in3, OUTPUT);
+    pinMode(in4, OUTPUT);
+
+    // Set Ultrasonic sensor pins
+    pinMode(frontTrig, OUTPUT); pinMode(frontEcho, INPUT);
+    pinMode(leftTrig, OUTPUT); pinMode(leftEcho, INPUT);
+    pinMode(rightTrig, OUTPUT); pinMode(rightEcho, INPUT);
+
+    // Start moving forward
+    moveForward();
+}
+
+void loop() {
+    // Update all ultrasonic sensor readings
+    cmFront = getUltrasonicDistance(frontTrig, frontEcho);
+    cmLeft = getUltrasonicDistance(leftTrig, leftEcho);
+    cmRight = getUltrasonicDistance(rightTrig, rightEcho);
+
+    // Print all sensor values together
+    Serial.println("---- Sensor Readings ----");
+    Serial.print("Front: "); Serial.print(cmFront); Serial.println(" cm");
+    Serial.print("Left: "); Serial.print(cmLeft); Serial.println(" cm");
+    Serial.print("Right: "); Serial.print(cmRight); Serial.println(" cm");
+    Serial.println("------------------------");
+
+    // Stop if any sensor detects an object within 30 cm
+    if ((cmFront <= 20 && cmFront > 0) || 
+        (cmLeft <= 20 && cmLeft > 0) || 
+        (cmRight <= 20 && cmRight > 0)) {
+        stopMotors();
+    } else {
+        moveForward();
+    }
+
+    delay(200);  // Small delay before checking again
+}
+
+// Function to get distance from an ultrasonic sensor
+long getUltrasonicDistance(int trigPin, int echoPin) {
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+    
+    long duration = pulseIn(echoPin, HIGH);
+    return (duration * 0.034) / 2;
+}
+
+// Function to move both motors forward
+void moveForward() {
+    Serial.println("Moving Forward");
+    digitalWrite(in1, HIGH); digitalWrite(in2, LOW);
+    analogWrite(enA, 191);
+    digitalWrite(in3, HIGH); digitalWrite(in4, LOW);
+    analogWrite(enB, 83);
+}
+
+// Function to stop motors
+void stopMotors() {
+    Serial.println("Stopping Motors");
+    digitalWrite(in1, LOW); digitalWrite(in2, LOW);
+    analogWrite(enA, 0);
+    digitalWrite(in3, LOW); digitalWrite(in4, LOW);
+    analogWrite(enB, 0);
+}
+
+// Function to turn right
+void turnRight() {
+    Serial.println("Turning Right");
+    digitalWrite(in1, LOW); digitalWrite(in2, HIGH);
+    analogWrite(enA, 100);
+    digitalWrite(in3, HIGH); digitalWrite(in4, LOW);
+    analogWrite(enB, 100);
+}
+
+// Function to turn left
+void turnLeft() {
+    Serial.println("Turning Left");
+    digitalWrite(in1, HIGH); digitalWrite(in2, LOW);
+    analogWrite(enA, 100);
+    digitalWrite(in3, LOW); digitalWrite(in4, HIGH);
+    analogWrite(enB, 100);
+}
